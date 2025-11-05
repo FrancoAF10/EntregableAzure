@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Analizador de Sentimiento</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f6fa;
+      padding: 40px;
+    }
+    .container {
+      background: #fff;
+      border-radius: 10px;
+      padding: 30px;
+      max-width: 700px;
+      margin: 0 auto;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      font-size: 16px;
+      resize: none;
+    }
+    button {
+      background: #0078D7;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #005fa3;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      background: #eef;
+    }
+    .positive { color: #16a34a; }
+    .neutral { color: #f59e0b; }
+    .negative { color: #ef4444; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Analizador de Sentimiento (Azure)</h1>
+    <textarea id="inputText" placeholder="Escribe tu texto aquí..."></textarea>
+    <button onclick="analyzeText()">Analizar</button>
+
+    <div id="result" class="result" style="display:none;">
+      <h3>Resultado:</h3>
+      <p>Sentimiento general: <span id="sentiment" class=""></span></p>
+      <p>Positivo: <span id="pos"></span></p>
+      <p>Neutral: <span id="neu"></span></p>
+      <p>Negativo: <span id="neg"></span></p>
+    </div>
+  </div>
+
+  <script>
+    async function analyzeText() {
+      const text = document.getElementById("inputText").value.trim();
+      if (!text) {
+        alert("Por favor, escribe un texto para analizar.");
+        return;
+      }
+
+      const res = await fetch("/analyze", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ text })
+      });
+
+      const data = await res.json();
+      const resultDiv = document.getElementById("result");
+
+      if (data.error) {
+        resultDiv.innerHTML = "<p style='color:red'>Error: " + data.error + "</p>";
+        resultDiv.style.display = "block";
+        return;
+      }
+
+      document.getElementById("sentiment").textContent = data.sentiment;
+      document.getElementById("sentiment").className = data.sentiment;
+      document.getElementById("pos").textContent = (data.confidence.positive * 100).toFixed(2) + "%";
+      document.getElementById("neu").textContent = (data.confidence.neutral * 100).toFixed(2) + "%";
+      document.getElementById("neg").textContent = (data.confidence.negative * 100).toFixed(2) + "%";
+      resultDiv.style.display = "block";
+    }
+  </script>
+</body>
+</html>
